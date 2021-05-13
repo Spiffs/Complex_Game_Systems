@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using CML;
@@ -12,8 +12,8 @@ public class MLAgent : MonoBehaviour
     public KeyCode[] Inputs;
 
     // ai management
-    private bool begin;
     public float reward = 0;
+    private bool begin = false;
     private SortedDictionary<float, SortedDictionary<float, List<KeyCode>>> savedStages
         = new SortedDictionary<float, SortedDictionary<float, List<KeyCode>>>();
     private float currentStage;
@@ -34,7 +34,7 @@ public class MLAgent : MonoBehaviour
         {
             if (savedStages.ContainsKey(currentStage))
             {
-                savedStages[currentStage].Last().Key
+                savedStages[currentStage].Last().Value
             }
         }
     }
@@ -49,5 +49,16 @@ public class MLAgent : MonoBehaviour
             newStep.Add(reward, MLInput.GetKeysDown()); 
             savedStages.Add(currentStage, newStep);
         }
+        begin = true;
+    }
+
+    private void LoadAIStages()
+    {
+
+    }
+
+    private void SaveAIStages()
+    {
+
     }
 }
