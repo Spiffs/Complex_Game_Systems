@@ -32,10 +32,7 @@ public class MLAgent : MonoBehaviour
     {
         if (begin)
         {
-            if (savedStages.ContainsKey(currentStage))
-            {
-                savedStages[currentStage].Last().Value
-            }
+            
         }
     }
 
@@ -50,6 +47,34 @@ public class MLAgent : MonoBehaviour
             savedStages.Add(currentStage, newStep);
         }
         begin = true;
+    }
+
+    // goes forward a step
+    private void TakeStep()
+    {
+
+    }
+
+    // goes back a step on fail 
+    private void BackStep()
+    {
+
+    }
+
+    // checks for when the agent passes into the next stage
+    private void CheckForUnit()
+    {
+
+    }
+
+    private void ApplyRewards(float a_reward)
+    {
+
+    }
+
+    private void CheckForFail()
+    {
+
     }
 
     private void LoadAIStages()
