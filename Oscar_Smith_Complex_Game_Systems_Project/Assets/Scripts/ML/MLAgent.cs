@@ -1,31 +1,24 @@
 ﻿ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using CML;
 using System.Linq;
 
 public class MLAgent : MonoBehaviour
 {
     // input management
-    public MLInput MLInput = new MLInput();
 
-    public KeyCode[] Inputs;
+
+    public List<KeyCode> Inputs;
 
     // ai management
     public float reward = 0;
     private bool begin = false;
-    private SortedDictionary<float, SortedDictionary<float, List<KeyCode>>> savedStages
-        = new SortedDictionary<float, SortedDictionary<float, List<KeyCode>>>();
+
     private float currentStage;
 
     void Start()
     {
-        foreach (KeyCode key in Inputs)
-        {
-            MLInput.AddInput(key);
-        }
 
-        StartCoroutine("TryButtons");
     }
 
     void FixedUpdate()
@@ -36,9 +29,15 @@ public class MLAgent : MonoBehaviour
         }
     }
 
+    // used to set the inputs from the manager
+    public void SetAvailableInputs(List<KeyCode> newInputs)
+    {
+        Inputs = newInputs;
+    }
+
     IEnumerator TryButtons()
     {
-        for (int i = 0; i > Inputs.Length; i++)
+        for (int i = 0; i > Inputs.Count; i++)
         {
             MLInput.PressKey(Inputs[i]);
             yield return null;
