@@ -35,18 +35,6 @@ public class MLAgent : MonoBehaviour
         Inputs = newInputs;
     }
 
-    IEnumerator TryButtons()
-    {
-        for (int i = 0; i > Inputs.Count; i++)
-        {
-            MLInput.PressKey(Inputs[i]);
-            yield return null;
-            SortedDictionary<float, List<KeyCode>> newStep = savedStages[i];
-            newStep.Add(reward, MLInput.GetKeysDown()); 
-            savedStages.Add(currentStage, newStep);
-        }
-        begin = true;
-    }
 
     // goes forward a step
     private void TakeStep()
@@ -54,14 +42,8 @@ public class MLAgent : MonoBehaviour
 
     }
 
-    // goes back a step on fail 
-    private void BackStep()
-    {
-
-    }
-
     // checks for when the agent passes into the next stage
-    private void CheckForUnit()
+    private void CheckForStage()
     {
 
     }

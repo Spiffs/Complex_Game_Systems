@@ -16,19 +16,7 @@ public class MLManager : MonoBehaviour
 
     #region AI MANAGEMENT
 
-    // ai management
-    public float reward = 0;
-    private bool begin = false;
-
-    // confirmed positive steps
-    // <step, <reward, list<keycode>>>
-    private SortedDictionary<float, SortedDictionary<float, List<KeyCode>>> ConfirmedStages
-        = new SortedDictionary<float, SortedDictionary<float, List<KeyCode>>>();
-
-    // bad steps ruled out 
-    private Dictionary<float, List<KeyCode>> DisabledKeys;
-
-    private float currentStage;
+            
 
     #endregion
 
@@ -51,7 +39,9 @@ public class MLManager : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
+    { 
 
     }
+
+    // TODO reward calculator:: _________________________________________________HAXXOR
 }
