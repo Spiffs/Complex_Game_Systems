@@ -1,20 +1,11 @@
-﻿ using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
 public class MLAgent : MonoBehaviour
 {
-    // input management
-
-
-    public List<KeyCode> Inputs;
-
-    // ai management
-    public float reward = 0;
-    private bool begin = false;
-
-    private float currentStage;
+    private float CurrentStage = -1;
 
     void Start()
     {
@@ -23,24 +14,26 @@ public class MLAgent : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (begin)
-        {
-            
-        }
+
     }
 
     // used to set the inputs from the manager
     public void SetAvailableInputs(List<KeyCode> newInputs)
     {
-        Inputs = newInputs;
+
     }
 
+    
+    public float GetStage()
+    {
+        return CurrentStage;
+    } // returns the current stage of the agent
 
-    // goes forward a step
-    private void TakeStep()
+    
+    private void TakeStep(List<KeyCode> input)
     {
 
-    }
+    } // goes forward a step
 
     // checks for when the agent passes into the next stage
     private void CheckForStage()
@@ -48,22 +41,13 @@ public class MLAgent : MonoBehaviour
 
     }
 
-    private void ApplyRewards(float a_reward)
+    // save a step to the ai manager 
+    private void SaveStep(float a_reward)
     {
 
-    }
+    } // save a step to the ai manager 
 
-    private void CheckForFail()
-    {
-
-    }
-
-    private void LoadAIStages()
-    {
-
-    }
-
-    private void SaveAIStages()
+    private void CheckForCollision()
     {
 
     }
