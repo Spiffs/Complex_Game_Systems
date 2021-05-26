@@ -1,5 +1,8 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.IO;
+using System.Xml;
 using UnityEngine;
 using CML;
 
@@ -21,7 +24,7 @@ public class MLManager : MonoBehaviour
     // routes<input, reward>
     List<SortedDictionary<KeyCode, float>> SavedGenerations;
     List<SortedDictionary<KeyCode, float>> FailStagesInRoutes;
-
+    
     #endregion
 
 
@@ -61,15 +64,65 @@ public class MLManager : MonoBehaviour
 
     }
 
-    // load all saved routes and stages
-    private void LoadAIStages()
+
+    static T LoadAISavedStages<T>()
     {
+        string savesFilepath = "/AISaves/SavedGenerations.txt";
 
-    }
+        // loading those that are saved AI routes
+        var s_fileStream = new FileStream(savesFilepath, FileMode.Open);
+        var s_reader = XmlDictionaryReader.CreateTextReader(s_fileStream, new XmlDictionaryReaderQuotas());
+        var s_serializer = new DataContractSerializer(typeof(T));
+        T s_serializableObject = (T)s_serializer.ReadObject(s_reader, true);
+        s_reader.Close();
+        s_fileStream.Close();
+        return s_serializableObject;
+    }    // load saved routes and stages
 
-    // save all routes and stages
-    private void SaveAIStages()
+    static T LoadAIFailedStages<T>()
     {
+        string failFilepath = "/AISaves/FailStagesInRoutes.txt";
 
-    }
+        // loading those that are failed AI routes
+        var f_fileStream = new FileStream(failFilepath, FileMode.Open);
+        var f_reader = XmlDictionaryReader.CreateTextReader(f_fileStream, new XmlDictionaryReaderQuotas());
+        var f_serializer = new DataContractSerializer(typeof(T));
+        T f_serializableObject = (T)f_serializer.ReadObject(f_reader, true);
+        f_reader.Close();
+        f_fileStream.Close();
+        return f_serializableObject;
+    }    // load saved routes and stages
+
+    static void SaveAISaveStages<T>(T savingObject)
+    {
+        string savesFilepath = "/AISaves/SavedGenerations.txt";
+
+        var serializer = new DataContractSerializer(typeof(T));
+        var settings = new XmlWriterSettings()
+        {
+            Indent = true,
+            IndentChars = "\t",
+        };
+        var writer = XmlWriter.Create(savesFilepath, settings);
+        serializer.WriteObject(writer, savingObject);
+        writer.Close();
+
+    }   // saving those that are saved AI routes 
+
+    static void SaveAIFailsStages<T>(T savingObject)
+    { 
+        string failFilepath = "/AISaves/FailStagesInRoutes.txt";
+
+        var serializer = new DataContractSerializer(typeof(T));
+        var settings = new XmlWriterSettings()
+        {
+            Indent = true,
+            IndentChars = "\t",
+        };
+        var writer = XmlWriter.Create(failFilepath, settings);
+        serializer.WriteObject(writer, savingObject);
+        writer.Close();
+
+        
+    }   // saving those that are failed AI routes
 }
