@@ -53,17 +53,15 @@ public class MLManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     { 
+        if (SavedGenerations.)
 
+        List<float> inputs & rewards
 
-
+        foreach (GameObject agent in Agents)
+        {
+            agent.GetComponent<MLAgent>().ControlledUpdate();
+        }
     }
-
-    // TODO reward calculator:: _________________________________________________HAXXOR
-    public float CalculateReward()
-    {
-
-    }
-
 
     static T LoadAISavedStages<T>()
     {
