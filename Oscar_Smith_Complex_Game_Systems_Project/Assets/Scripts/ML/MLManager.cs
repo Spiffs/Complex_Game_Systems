@@ -12,7 +12,10 @@ public class MLManager : MonoBehaviour
     #region INPUTS
 
     // input management
-    public MLInput MLInput = new MLInput();
+
+    [SerializeField]
+    private MLInput MLInput = new MLInput();
+        [SerializeField]
     public List<KeyCode> Inputs;
 
     #endregion
@@ -20,52 +23,56 @@ public class MLManager : MonoBehaviour
 
     #region AI MANAGEMENT
 
-    // managing routes and rewards for all inputs 
-    // routes<input, reward>
-    List<SortedDictionary<KeyCode, float>> SavedGenerations;
-    List<SortedDictionary<KeyCode, float>> FailStagesInRoutes;
-    
-    #endregion
+    // managing rewards for all inputs 
+    private Dictionary<KeyCode, float> SavedStages;
 
+    // curremt and targeted stage for rerun
+    private int CurrentStage = 0;
+    private int TargetRerunStage = 0;
 
-    #region AGENTS
-
-    public int AmountOfAgents = 1;
-    List<GameObject> Agents;
+    // fail checking to return to the updaate function
+    private bool FailOnStep = false;
 
     #endregion
+
 
 
     // Start is called before the first frame update
     void Start()
     {
-        SavedGenerations = new List<SortedDictionary<KeyCode, float>>();
-        FailStagesInRoutes = new List<SortedDictionary<KeyCode, float>>();
+        // initialise saved stages as a dictionary
+        SavedStages = new Dictionary<KeyCode, float>();
 
         foreach (KeyCode key in Inputs)
         {
             MLInput.AddInput(key);
         }
-        
-        
     }
+    
+
 
     // Update is called once per frame
     void Update()
-    { 
-        if (SavedGenerations.)
-
-        List<float> inputs & rewards
-
-        foreach (GameObject agent in Agents)
+    {
+        // main look first checks for fails after an update as well as step count
+        if (FailOnStep)
         {
-            agent.GetComponent<MLAgent>().ControlledUpdate();
+
         }
     }
 
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        FailOnStep = true;
+    } // if the AI fails on step
+
+
+    #region SAVING_AND_LOADING
+
     static T LoadAISavedStages<T>()
     {
-        string savesFilepath = "/AISaves/SavedGenerations.txt";
+        string savesFilepath = "/AISaves/SavedStages.txt";
 
         // loading those that are saved AI routes
         var s_fileStream = new FileStream(savesFilepath, FileMode.Open);
@@ -77,23 +84,10 @@ public class MLManager : MonoBehaviour
         return s_serializableObject;
     }    // load saved routes and stages
 
-    static T LoadAIFailedStages<T>()
-    {
-        string failFilepath = "/AISaves/FailStagesInRoutes.txt";
-
-        // loading those that are failed AI routes
-        var f_fileStream = new FileStream(failFilepath, FileMode.Open);
-        var f_reader = XmlDictionaryReader.CreateTextReader(f_fileStream, new XmlDictionaryReaderQuotas());
-        var f_serializer = new DataContractSerializer(typeof(T));
-        T f_serializableObject = (T)f_serializer.ReadObject(f_reader, true);
-        f_reader.Close();
-        f_fileStream.Close();
-        return f_serializableObject;
-    }    // load saved routes and stages
 
     static void SaveAISaveStages<T>(T savingObject)
     {
-        string savesFilepath = "/AISaves/SavedGenerations.txt";
+        string savesFilepath = "/AISaves/SavedStages.txt";
 
         var serializer = new DataContractSerializer(typeof(T));
         var settings = new XmlWriterSettings()
@@ -107,20 +101,6 @@ public class MLManager : MonoBehaviour
 
     }   // saving those that are saved AI routes 
 
-    static void SaveAIFailsStages<T>(T savingObject)
-    { 
-        string failFilepath = "/AISaves/FailStagesInRoutes.txt";
+    #endregion
 
-        var serializer = new DataContractSerializer(typeof(T));
-        var settings = new XmlWriterSettings()
-        {
-            Indent = true,
-            IndentChars = "\t",
-        };
-        var writer = XmlWriter.Create(failFilepath, settings);
-        serializer.WriteObject(writer, savingObject);
-        writer.Close();
-
-        
-    }   // saving those that are failed AI routes
 }
