@@ -57,9 +57,25 @@ public class MLManager : MonoBehaviour
         // main look first checks for fails after an update as well as step count
         if (FailOnStep)
         {
+            TargetRerunStage = CurrentStage;
+            FailOnStep = true;
+            Restart();
+        }
+        else
+        {
+            // main AI decision making process 
+
 
         }
     }
+
+
+    void Restart()
+    {
+        // TODO: Restart
+
+
+    } // restart script
 
 
     private void OnCollisionEnter2D(Collision2D collision)
