@@ -21,7 +21,7 @@ public class CarMovement : MonoBehaviour
     // script values
     public float CurrentSpeed = 0;
     public float CurrentSteerSpeed = 0;
-
+    
     void Start()
     {
 
@@ -39,10 +39,11 @@ public class CarMovement : MonoBehaviour
     private void ApplyAcceneration(float Input)
     {
         CurrentSpeed += Acceleration * Input;
-        CurrentSpeed = (Acceleration * Input / 10) * Mathf.Pow(CurrentSpeed, 3);
+        CurrentSpeed = ((Acceleration * Input) / 10) * Mathf.Pow(CurrentSpeed, 3);
 
         if (CurrentSpeed > MaxSpeed)
             CurrentSpeed = MaxSpeed;
+        Debug.Log(CurrentSpeed);
     }
 
     private void ApplyAccelerationAndSteering()
