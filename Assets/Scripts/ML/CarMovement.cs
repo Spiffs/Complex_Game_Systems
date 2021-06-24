@@ -4,51 +4,20 @@ using UnityEngine;
 
 public class CarMovement : MonoBehaviour
 {
+    public float Speed = 1;
 
-    [SerializeField]
-    private float MaxSpeed = 10; // maximum speed the car can travel
-
-    [SerializeField]
-    private float Acceleration = 1; // maximum speed of acceleration 
-
-
-    [SerializeField]
-    private float MaxSteerAngle = 30; // maximum angle the car can steer
-
-    [SerializeField]
-    private float SteerAcceleration = 1; // maximum speed the steering can change;
-
-    // script values
-    public float CurrentSpeed = 0;
-    public float CurrentSteerSpeed = 0;
+    private Rigidbody2D rb;
     
     void Start()
     {
-
+        rb = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        // get inputs and alter the speed based on the inputs
-        ApplyAcceneration(1);
+        // applying force to move the car forward
+        rb.AddForce(transform.forward * Input.GetAxis("Vertical") * Time.deltaTime * Speed, ForceMode2D.Force);
 
-        ApplyAccelerationAndSteering();
-    }
-
-    private void ApplyAcceneration(float Input)
-    {
-        CurrentSpeed += Acceleration * Input;
-        CurrentSpeed = ((Acceleration * Input) / 10) * Mathf.Pow(CurrentSpeed, 3);
-
-        if (CurrentSpeed > MaxSpeed)
-            CurrentSpeed = MaxSpeed;
-        Debug.Log(CurrentSpeed);
-    }
-
-    private void ApplyAccelerationAndSteering()
-    {
-        transform.position += transform.up * Time.fixedDeltaTime * CurrentSpeed;
-        transform.eulerAngles = Vector3.forward * CurrentSteerSpeed;
     }
 }
