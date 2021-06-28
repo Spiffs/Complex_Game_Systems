@@ -15,7 +15,7 @@ public class MLManager : MonoBehaviour
 
     [SerializeField]
     private MLInput MLInput = new MLInput();
-        [SerializeField]
+    [SerializeField]
     public List<KeyCode> Inputs;
 
     #endregion
@@ -24,11 +24,17 @@ public class MLManager : MonoBehaviour
     #region AI MANAGEMENT
 
     // managing rewards for all inputs 
-    private Dictionary<KeyCode, float> SavedStages;
+    // current stage #list < Keycode in stage, reward return for respective input
+    private List<Dictionary<KeyCode, float>> SavedStages;
+    private List<Dictionary<KeyCode, float>> FailStages;
 
     // curremt and targeted stage for rerun
+    // current stage starts at 0 = first run :)
     private int CurrentStage = 0;
     private int TargetRerunStage = 0;
+
+    // letting the code know if it can test steps again
+    private bool StepInProgress = false;
 
     // fail checking to return to the updaate function
     private bool FailOnStep = false;
@@ -41,33 +47,58 @@ public class MLManager : MonoBehaviour
     void Start()
     {
         // initialise saved stages as a dictionary
-        SavedStages = new Dictionary<KeyCode, float>();
+        SavedStages = new List<Dictionary<KeyCode, float>>();
+
+        // initialise failed stages as a dictionary
+        FailStages = new List<Dictionary<KeyCode, float>>();
+
 
         foreach (KeyCode key in Inputs)
         {
             MLInput.AddInput(key);
         }
     }
-    
 
 
-    // Update is called once per frame
     void Update()
     {
-        // main look first checks for fails after an update as well as step count
-        if (FailOnStep)
+        if (!StepInProgress)
         {
-            TargetRerunStage = CurrentStage;
-            FailOnStep = true;
-            Restart();
+            // main look first checks for fails after an update as well as step count
+            if (FailOnStep)
+            {
+                TargetRerunStage = CurrentStage;
+                FailOnStep = true;
+                Restart();
+            }
+            else
+            {
+                // main AI decision making process 
+                if (SavedStages[CurrentStage].Count <= 0)
+                {
+                    // try random move 
+                    // list of inputs that are yet to be tested on the current stage
+                    KeyCode ToBeTested = KeyCode.None;
+
+                    // search for key that has not been tested
+                    foreach (var key in Inputs)
+                    {
+                        if (!SavedStages[CurrentStage].ContainsKey(key))
+                        { ToBeTested = key; break; }
+                    }
+                    MLInput.PressKey(ToBeTested);
+                }
+
+            }
         }
+        // TODO: stage check & calculate reward on stage
         else
         {
-            // main AI decision making process 
-
 
         }
     }
+
+
 
 
     void Restart()

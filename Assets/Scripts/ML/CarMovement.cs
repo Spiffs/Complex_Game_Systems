@@ -4,20 +4,25 @@ using UnityEngine;
 
 public class CarMovement : MonoBehaviour
 {
-    public float Speed = 1;
+    [SerializeField]
+    [Range(0, 100)]
+    private float Speed = 1;
 
-    private Rigidbody2D rb;
-    
+    [SerializeField]
+    [Range(0, 100)]
+    private float RotateSpeed = 1;
+
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        // applying force to move the car forward
-        rb.AddForce(transform.forward * Input.GetAxis("Vertical") * Time.deltaTime * Speed, ForceMode2D.Force);
+        // moving with the arrow keys
+        transform.position += transform.up * Input.GetAxis("Vertical") * Speed / 50;
 
+        // rotating with the arrow keys
+        transform.Rotate(transform.forward, Input.GetAxis("Horizontal") * RotateSpeed);
     }
 }
