@@ -76,14 +76,14 @@ public class MLManager : MonoBehaviour
                 // main AI decision making process 
                 if (SavedStages[CurrentStage].Count <= 0)
                 {
-                    // try random move 
+                    // try random move  
                     // list of inputs that are yet to be tested on the current stage
                     KeyCode ToBeTested = KeyCode.None;
 
                     // search for key that has not been tested
                     foreach (var key in Inputs)
                     {
-                        if (!SavedStages[CurrentStage].ContainsKey(key))
+                        if (!FailStages[CurrentStage].ContainsKey(key))
                         { ToBeTested = key; break; }
                     }
                     MLInput.PressKey(ToBeTested);
@@ -92,10 +92,6 @@ public class MLManager : MonoBehaviour
             }
         }
         // TODO: stage check & calculate reward on stage
-        else
-        {
-
-        }
     }
 
 
