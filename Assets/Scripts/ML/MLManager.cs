@@ -42,8 +42,7 @@ public class MLManager : MonoBehaviour
     // curremt and targeted stage for rerun
     // current stage starts at 0 = first run :)
     private int CurrentStage = 0;
-    // tracks the return stage for a fail
-    private int TargetRerunStage = 0;
+
     // for recalling keys to add to the list
     private KeyCode PreviousKey = KeyCode.None;
     private KeyCode CurrentKey = KeyCode.None;
@@ -73,67 +72,70 @@ public class MLManager : MonoBehaviour
 
         foreach (KeyCode key in Inputs)
         {
-            MLInput.AddInput(key); 
+            MLInput.AddInput(key);
         }
     }
 
 
     void Update()
     {
-        if (!StepInProgress)
+        // main look first checks for fails after an update as well as step count
+        if (FailOnStep)
         {
-            // main look first checks for fails after an update as well as step count
-            if (FailOnStep)
+            // add step to fail stages
+            FailStages[CurrentStage].Add(-2, CurrentKey); // default fail reward = -2
+
+            Restart();
+            return;
+        }
+        else if (!StepInProgress)
+        {
+            // get the starting position of the step
+            StartStepPos = transform.position;
+
+            // key to apply as input
+            KeyCode ToBeTested = KeyCode.None;
+
+            // main AI decision making process 
+            // if saved stages are available
+            if (SavedStages[CurrentStage].Count > 0 )
             {
-                TargetRerunStage = CurrentStage;
-                Restart();
+                ToBeTested = SavedStages[CurrentStage].Values.Last();
+            }
+
+            // if savedstages does not have any available inputs
+            else if (SavedStages[CurrentStage].Count <= 0)
+            {
+                // try random move  
+                // search for key that has not been tested
+                foreach (var key in Inputs)
+                {
+                    if (!FailStages[CurrentStage].ContainsValue(key))
+                    { ToBeTested = key; break; }
+                }
+            }
+
+            if (ToBeTested != KeyCode.None)
+            {
+                StepInProgress = true;
+                CurrentKey = ToBeTested;
+                MLInput.PressKey(ToBeTested);
             }
             else
             {
-                // get the starting position of the step
-                StartStepPos = transform.position;
-
-                // key to apply as input
-                KeyCode ToBeTested = KeyCode.None;
-
-                // main AI decision making process 
-                // if saved stages are available
-                if (SavedStages[CurrentStage].Count > 0)
-                {
-                    ToBeTested = SavedStages[CurrentStage].Values.Last();
-                }
-
-                // if savedstages does not have any available inputs
-                else if (SavedStages[CurrentStage].Count <= 0)
-                {
-                    // try random move  
-                    // search for key that has not been tested
-                    foreach (var key in Inputs)
-                    {
-                        if (!FailStages[CurrentStage].ContainsValue(key))
-                        { ToBeTested = key; break; }
-                    }
-                }
-
-                if (ToBeTested != KeyCode.None)
-                {
-                    StepInProgress = true;
-                    CurrentKey = ToBeTested;
-                    MLInput.PressKey(ToBeTested);
-                }
-                else
-                {
-                    // adds the current step if all inputs are failed
-                    FailStages[CurrentStage--].Add(-2, PreviousKey); // default fail reward = -2
-                }
+                // adds the current step if all inputs are failed
+                FailStages[CurrentStage--].Add(-2, PreviousKey); // default fail reward = -2
+                Restart();
             }
         }
+
         // TODO: stage check & calculate reward on stage
         else if (StepInProgress)
         {
             if (Vector2.Distance(StartStepPos, transform.position) > RequiredStepDistance)
             {
-                // reset the step key to none
+                // reset the step key to none and setting previous key
+                PreviousKey = CurrentKey;
                 CurrentKey = KeyCode.None;
 
                 // add 1 to the current stage as the current is complete
@@ -141,18 +143,36 @@ public class MLManager : MonoBehaviour
 
                 // set step in progress to false as step is completed
                 StepInProgress = false;
+
+                // TODO: save step and reward and restart
+
             }
         }
     }
 
     void Restart()
     {
-        // TODO: Restart
-        TargetRerunStage = CurrentStage;
+        // resetting position to starting position
+        transform.position = StartingTransform.position;
+        transform.rotation = StartingTransform.rotation;
+        transform.localScale = StartingTransform.localScale;
 
+        StartStepPos = Vector2.zero;
 
-    } // restart script
+        // resetting vairables
+        CurrentStage = 0;
+        CurrentKey = KeyCode.None;
+        PreviousKey = KeyCode.None;
 
+        FailOnStep = false;
+        StepInProgress = false;
+
+    } // restart fuction
+
+    private float RewardCalculations()
+    {
+        return Vector2.Distance(StartStepPos, transform.position) * -1;
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
