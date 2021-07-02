@@ -9,12 +9,16 @@ using System.Linq;
 
 public class MLManager : MonoBehaviour
 {
+    /* Error codes:
+     * 
+     * ERR 102 : No inputs in ML Manager, TO FIX : add inputs to list in Inspector
+   
+     */
+
     #region INPUTS
 
     // input management
-
-    [SerializeField]
-    private MLInput MLInput = new MLInput();
+    public MLInput MLInput = new MLInput();
     [SerializeField]
     public List<KeyCode> Inputs;
 
@@ -25,6 +29,9 @@ public class MLManager : MonoBehaviour
 
     // public variables
     public float RequiredStepDistance = 1;
+
+    // target Transform
+    public Transform TargetTransform;
 
 
     // private variables
@@ -44,8 +51,8 @@ public class MLManager : MonoBehaviour
     private int CurrentStage = 0;
 
     // for recalling keys to add to the list
-    private KeyCode PreviousKey = KeyCode.None;
-    private KeyCode CurrentKey = KeyCode.None;
+    private KeyCode PreviousKey = KeyCode.F15;
+    private KeyCode CurrentKey = KeyCode.F15;
 
     // letting the code know if it can test steps again
     private bool StepInProgress = false;
@@ -94,28 +101,51 @@ public class MLManager : MonoBehaviour
             StartStepPos = transform.position;
 
             // key to apply as input
-            KeyCode ToBeTested = KeyCode.None;
+            KeyCode ToBeTested = KeyCode.F15;
 
             // main AI decision making process 
             // if saved stages are available
-            if (SavedStages[CurrentStage].Count > 0 )
+            if (SavedStages.Count > CurrentStage)
             {
-                ToBeTested = SavedStages[CurrentStage].Values.Last();
-            }
-
-            // if savedstages does not have any available inputs
-            else if (SavedStages[CurrentStage].Count <= 0)
-            {
-                // try random move  
-                // search for key that has not been tested
-                foreach (var key in Inputs)
+                try
                 {
-                    if (!FailStages[CurrentStage].ContainsValue(key))
-                    { ToBeTested = key; break; }
+                    if (SavedStages[CurrentStage].Count > 0)
+                    {
+                        ToBeTested = SavedStages[CurrentStage].Values.Last();
+                    }
+                }
+                catch
+                {
+                    Debug.Log("The ML Manager has no inputs to use: ERR 102");
                 }
             }
 
-            if (ToBeTested != KeyCode.None)
+            else if (SavedStages.Count <= 0)
+            {
+                // add to each list to make room for a new step 
+                SavedStages.Add(new SortedDictionary<float, KeyCode>());
+                FailStages.Add(new SortedDictionary<float, KeyCode>());
+
+                // if savedstages does not have any available inputs
+                if (SavedStages[CurrentStage].Count <= 0)
+                {
+                    // try random move  
+                    // search for key that has not been tested
+                    foreach (var key in Inputs)
+                    {
+                        if (FailStages.Count >= CurrentStage && FailStages[CurrentStage].Count > 0)
+                        {
+                            if (!FailStages[CurrentStage].ContainsValue(key))
+                            { ToBeTested = key; break; }
+                        }
+                        else
+                            ToBeTested = Inputs[0]; break;
+                    }
+                }
+            }
+
+            // apply the Key
+            if (ToBeTested != KeyCode.F15)
             {
                 StepInProgress = true;
                 CurrentKey = ToBeTested;
@@ -123,10 +153,16 @@ public class MLManager : MonoBehaviour
             }
             else
             {
-                // adds the current step if all inputs are failed
-                FailStages[CurrentStage--].Add(-2, PreviousKey); // default fail reward = -2
-                Restart();
-            }
+                try
+                {
+                    FailStages[CurrentStage - 1].Add(-2, PreviousKey); // default fail reward = -2
+                    Restart();
+                }
+                catch
+                {
+                    Debug.Log("Oscar is Monkey");
+                }
+                }
         }
 
         // TODO: stage check & calculate reward on stage
@@ -134,18 +170,21 @@ public class MLManager : MonoBehaviour
         {
             if (Vector2.Distance(StartStepPos, transform.position) > RequiredStepDistance)
             {
-                // reset the step key to none and setting previous key
-                PreviousKey = CurrentKey;
-                CurrentKey = KeyCode.None;
+                // set step in progress to false as step is completed
+                StepInProgress = false;
+
+                // save step and reward
+                //if (!SavedStages.Count > CurrentStage)
+
+
+                SavedStages[CurrentStage].Add(RewardCalculations(), CurrentKey);
 
                 // add 1 to the current stage as the current is complete
                 CurrentStage++;
 
-                // set step in progress to false as step is completed
-                StepInProgress = false;
-
-                // TODO: save step and reward and restart
-
+                // reset the step key to none and setting previous key
+                PreviousKey = CurrentKey;
+                CurrentKey = KeyCode.F15;
             }
         }
     }
@@ -161,8 +200,8 @@ public class MLManager : MonoBehaviour
 
         // resetting vairables
         CurrentStage = 0;
-        CurrentKey = KeyCode.None;
-        PreviousKey = KeyCode.None;
+        CurrentKey = KeyCode.F15;
+        PreviousKey = KeyCode.F15;
 
         FailOnStep = false;
         StepInProgress = false;
@@ -171,7 +210,7 @@ public class MLManager : MonoBehaviour
 
     private float RewardCalculations()
     {
-        return Vector2.Distance(StartStepPos, transform.position) * -1;
+        return Vector2.Distance(TargetTransform.position, transform.position) * -1;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
