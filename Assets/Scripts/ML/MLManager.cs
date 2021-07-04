@@ -97,7 +97,6 @@ public class MLManager : MonoBehaviour
         }
         else if (!StepInProgress)
         {
-            // get the starting position of the step
             StartStepPos = transform.position;
 
             // key to apply as input
@@ -120,7 +119,7 @@ public class MLManager : MonoBehaviour
                 }
             }
 
-            else if (SavedStages.Count <= 0)
+            else //if (SavedStages.Count <= 0)
             {
                 // add to each list to make room for a new step 
                 SavedStages.Add(new SortedDictionary<float, KeyCode>());
@@ -150,19 +149,14 @@ public class MLManager : MonoBehaviour
                 StepInProgress = true;
                 CurrentKey = ToBeTested;
                 MLInput.PressKey(ToBeTested);
+                Debug.Log(PreviousKey.ToString() + " " + ToBeTested.ToString());
+                Debug.Log(CurrentStage);
             }
             else
             {
-                try
-                {
-                    FailStages[CurrentStage - 1].Add(-2, PreviousKey); // default fail reward = -2
-                    Restart();
-                }
-                catch
-                {
-                    Debug.Log("Oscar is Monkey");
-                }
-                }
+                FailStages[CurrentStage - 1].Add(-2, PreviousKey); // default fail reward = -2
+                Restart(); 
+            }
         }
 
         // TODO: stage check & calculate reward on stage
