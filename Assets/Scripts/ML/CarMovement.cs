@@ -33,7 +33,7 @@ public class CarMovement : MonoBehaviour
         if (Input.GetAxis("Vertical") > 0 || Input.GetAxis("Horizontal") > 0)
         {
             // moving with the arrow keys
-            transform.position += transform.up * Input.GetAxis("Vertical") * Speed / 50;
+            transform.position += transform.up * Input.GetAxis("Vertical") * Speed / 100;
 
             // rotating with the arrow keys
             transform.Rotate(transform.forward, Input.GetAxis("Horizontal") * RotateSpeed);
@@ -41,19 +41,23 @@ public class CarMovement : MonoBehaviour
         else
         {
             if (HoldForward)
-                transform.position += transform.up * 1 * Speed / 50;
+                transform.position += transform.up * 1 * Speed / 100;
 
-            // using AI inputs
+            // using AI inputsS
             float axisChecker = 0;
 
             // inputs either A or D
+            // aleternativly could use IsKeyDown() from MLLib
             if (InputsFromML.GetKeysDown().Contains(KeyCode.A))
                 axisChecker = -1;
             else if (InputsFromML.GetKeysDown().Contains(KeyCode.D))
                 axisChecker = 1;
-
+            
             // ml input user
             transform.Rotate(transform.forward, axisChecker * RotateSpeed);
+
+            // reset the MLInput using the Update function from MlLib
+            InputsFromML.Update();
         }
     }
 }

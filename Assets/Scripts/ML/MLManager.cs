@@ -12,8 +12,9 @@ public class MLManager : MonoBehaviour
     /* Error codes:
      * 
      * ERR 102 : No inputs in ML Manager, TO FIX : add inputs to list in Inspector
-   
+       ERR 103 : Issue with failing stages, usually a duplicate has occured
      */
+
 
     #region INPUTS
 
@@ -36,7 +37,8 @@ public class MLManager : MonoBehaviour
 
     // private variables
     // starting position of the AI
-    private Transform StartingTransform;
+    private Vector3 StartingPosition;
+    private Quaternion StartingRotation;
 
     // determining a step by distance
     private Vector2 StartStepPos;
@@ -68,7 +70,8 @@ public class MLManager : MonoBehaviour
     void Start()
     {
         // set the starting position of the AI character 
-        StartingTransform = transform;
+        StartingPosition = transform.position;
+        StartingRotation = transform.rotation;
 
         // initialise saved stages as a dictionary
         SavedStages = new List<SortedDictionary<float, KeyCode>>();
@@ -84,13 +87,17 @@ public class MLManager : MonoBehaviour
     }
 
 
-    void Update()
+    void FixedUpdate()
     {
         // main look first checks for fails after an update as well as step count
         if (FailOnStep)
         {
-            // add step to fail stages
-            FailStages[CurrentStage].Add(-2, CurrentKey); // default fail reward = -2
+            try
+            {
+                // add step to fail stages
+                FailStages[CurrentStage].Add(RewardCalculations() - 10, CurrentKey); // default fail reward = -2
+            }
+            catch { Debug.Log("ERR 103: Error failing stage" + "  "  + CurrentStage + ", " + CurrentKey.ToString()); }
 
             Restart();
             return;
@@ -104,41 +111,52 @@ public class MLManager : MonoBehaviour
 
             // main AI decision making process 
             // if saved stages are available
-            if (SavedStages.Count > CurrentStage)
+            if (SavedStages.Count > CurrentStage && SavedStages[CurrentStage].Count > 0)
             {
                 try
                 {
-                    if (SavedStages[CurrentStage].Count > 0)
-                    {
-                        ToBeTested = SavedStages[CurrentStage].Values.Last();
-                    }
+                    ToBeTested = SavedStages[CurrentStage].Values.Last();
                 }
                 catch
                 {
-                    Debug.Log("The ML Manager has no inputs to use: ERR 102");
+                    Debug.Log("ERR 102: The ML Manager has no inputs to use");
                 }
             }
 
             else //if (SavedStages.Count <= 0)
             {
                 // add to each list to make room for a new step 
-                SavedStages.Add(new SortedDictionary<float, KeyCode>());
-                FailStages.Add(new SortedDictionary<float, KeyCode>());
+                if (SavedStages.Count <= CurrentStage)
+                    SavedStages.Add(new SortedDictionary<float, KeyCode>());
+                if (FailStages.Count <= CurrentStage)
+                    FailStages.Add(new SortedDictionary<float, KeyCode>());
 
                 // if savedstages does not have any available inputs
                 if (SavedStages[CurrentStage].Count <= 0)
                 {
+                    // try the first move if none are selected
+
+                    if (FailStages[CurrentStage].Count >= Inputs.Count)
+                    {
+                        FailStages[(CurrentStage - 1)].Add(RewardCalculations() - 10, PreviousKey); // default fail reward = -2
+                        SavedStages[(CurrentStage - 1)].Remove(SavedStages[CurrentStage - 1].);
+                        Restart();
+                        return;
+                    }
+
                     // try random move  
                     // search for key that has not been tested
-                    foreach (var key in Inputs)
+                    else if (FailStages.Count >= CurrentStage && FailStages[CurrentStage].Count > 0)
                     {
-                        if (FailStages.Count >= CurrentStage && FailStages[CurrentStage].Count > 0)
+                        foreach (var key in Inputs)
                         {
                             if (!FailStages[CurrentStage].ContainsValue(key))
                             { ToBeTested = key; break; }
                         }
-                        else
-                            ToBeTested = Inputs[0]; break;
+                    }
+                    else
+                    {
+                        ToBeTested = Inputs[0];
                     }
                 }
             }
@@ -151,11 +169,6 @@ public class MLManager : MonoBehaviour
                 MLInput.PressKey(ToBeTested);
                 Debug.Log(PreviousKey.ToString() + " " + ToBeTested.ToString());
                 Debug.Log(CurrentStage);
-            }
-            else
-            {
-                FailStages[CurrentStage - 1].Add(-2, PreviousKey); // default fail reward = -2
-                Restart(); 
             }
         }
 
@@ -170,8 +183,10 @@ public class MLManager : MonoBehaviour
                 // save step and reward
                 //if (!SavedStages.Count > CurrentStage)
 
+                float rewardForStep = RewardCalculations();
 
-                SavedStages[CurrentStage].Add(RewardCalculations(), CurrentKey);
+                if (!SavedStages[CurrentStage].ContainsKey(rewardForStep))
+                    SavedStages[CurrentStage].Add(rewardForStep, CurrentKey);
 
                 // add 1 to the current stage as the current is complete
                 CurrentStage++;
@@ -186,11 +201,10 @@ public class MLManager : MonoBehaviour
     void Restart()
     {
         // resetting position to starting position
-        transform.position = StartingTransform.position;
-        transform.rotation = StartingTransform.rotation;
-        transform.localScale = StartingTransform.localScale;
+        transform.position = StartingPosition;
+        transform.rotation = StartingRotation;
 
-        StartStepPos = Vector2.zero;
+        StartStepPos = transform.position;
 
         // resetting vairables
         CurrentStage = 0;

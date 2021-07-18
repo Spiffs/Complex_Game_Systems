@@ -20,7 +20,7 @@ namespace CML
 
         public bool IsKeyDown(KeyCode key)
         {
-            if (AvailableInputs[key] || Input.GetKeyDown(key))
+            if (AvailableInputs[key] == true || Input.GetKeyDown(key))
             {
                 return true;
             }
@@ -42,12 +42,20 @@ namespace CML
 
         public void Update()
         {
-            foreach (KeyValuePair<KeyCode, bool> input in AvailableInputs)
+            // Error InvalidOperationException, FIX: Do not edit an arrays contents while iterating through them. Bad Practice
+            // FIX: Create temp then make equal NOT WORKING ((Dictionary<KeyCode, bool> tempDictionary = AvailableInputs;))
+            // FIX: Create a temp list and readd all variables into the new list (( Dictionary<KeyCode, bool> tempDictionary = new Dictionary<KeyCode, bool>();))
+            Dictionary<KeyCode, bool> tempDictionary = new Dictionary<KeyCode, bool>();
+
+            foreach (KeyCode key in AvailableInputs.Keys)
             {
-                AvailableInputs[input.Key] = false;
+                tempDictionary.Add(key, false);
             }
+
+            AvailableInputs = tempDictionary;
         }
     }
+
 
     public class MLEnvioronmentInfo
     {
