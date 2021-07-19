@@ -13,6 +13,7 @@ public class MLManager : MonoBehaviour
      * 
      * ERR 102 : No inputs in ML Manager, TO FIX : add inputs to list in Inspector
        ERR 103 : Issue with failing stages, usually a duplicate has occured
+       ERR 104 : Issue with removing from position in SavedStages
      */
 
 
@@ -46,7 +47,7 @@ public class MLManager : MonoBehaviour
     // managing rewards for all inputs 
     // current stage #list < Keycode in stage, reward return for respective input
     private List<SortedDictionary<float, KeyCode>> SavedStages;
-    private List<SortedDictionary<float, KeyCode>> FailStages;
+    private List<SortedDictionary<KeyCode, float>> FailStages;
 
     // curremt and targeted stage for rerun
     // current stage starts at 0 = first run :)
@@ -61,6 +62,11 @@ public class MLManager : MonoBehaviour
 
     // fail checking to return to the updaate function
     private bool FailOnStep = false;
+
+
+    // path ending
+    [NonSerialized]
+    public bool TargetFound = false;
 
     #endregion
 
@@ -77,7 +83,7 @@ public class MLManager : MonoBehaviour
         SavedStages = new List<SortedDictionary<float, KeyCode>>();
 
         // initialise failed stages as a dictionary
-        FailStages = new List<SortedDictionary<float, KeyCode>>();
+        FailStages = new List<SortedDictionary<KeyCode, float>>();
 
 
         foreach (KeyCode key in Inputs)
@@ -89,111 +95,148 @@ public class MLManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        // main look first checks for fails after an update as well as step count
-        if (FailOnStep)
+        if (!TargetFound)
         {
-            try
-            {
-                // add step to fail stages
-                FailStages[CurrentStage].Add(RewardCalculations() - 10, CurrentKey); // default fail reward = -2
-            }
-            catch { Debug.Log("ERR 103: Error failing stage" + "  "  + CurrentStage + ", " + CurrentKey.ToString()); }
-
-            Restart();
-            return;
-        }
-        else if (!StepInProgress)
-        {
-            StartStepPos = transform.position;
-
-            // key to apply as input
-            KeyCode ToBeTested = KeyCode.F15;
-
-            // main AI decision making process 
-            // if saved stages are available
-            if (SavedStages.Count > CurrentStage && SavedStages[CurrentStage].Count > 0)
+            // main look first checks for fails after an update as well as step count
+            if (FailOnStep)
             {
                 try
                 {
-                    ToBeTested = SavedStages[CurrentStage].Values.Last();
+                    // add step to fail stages
+                    FailStages[CurrentStage].Add(CurrentKey, RewardCalculations() - 10); // default fail reward = -2
                 }
-                catch
-                {
-                    Debug.Log("ERR 102: The ML Manager has no inputs to use");
-                }
+                catch { Debug.Log("ERR 103: Error failing stage" + "  " + CurrentStage + ", " + CurrentKey.ToString()); }
+
+                Restart();
+                return;
             }
-
-            else //if (SavedStages.Count <= 0)
+            else if (!StepInProgress)
             {
-                // add to each list to make room for a new step 
-                if (SavedStages.Count <= CurrentStage)
-                    SavedStages.Add(new SortedDictionary<float, KeyCode>());
-                if (FailStages.Count <= CurrentStage)
-                    FailStages.Add(new SortedDictionary<float, KeyCode>());
+                StartStepPos = transform.position;
 
-                // if savedstages does not have any available inputs
-                if (SavedStages[CurrentStage].Count <= 0)
+                // key to apply as input
+                KeyCode ToBeTested = KeyCode.F15;
+
+                // main AI decision making process 
+                // if saved stages are available
+                if (SavedStages.Count > CurrentStage && SavedStages[CurrentStage].Count > 0)
                 {
-                    // try the first move if none are selected
-
-                    if (FailStages[CurrentStage].Count >= Inputs.Count)
+                    try
                     {
-                        FailStages[(CurrentStage - 1)].Add(RewardCalculations() - 10, PreviousKey); // default fail reward = -2
-                        SavedStages[(CurrentStage - 1)].Remove(SavedStages[CurrentStage - 1].);
-                        Restart();
-                        return;
+                        ToBeTested = SavedStages[CurrentStage].Values.Last();
                     }
-
-                    // try random move  
-                    // search for key that has not been tested
-                    else if (FailStages.Count >= CurrentStage && FailStages[CurrentStage].Count > 0)
+                    catch
                     {
-                        foreach (var key in Inputs)
+                        Debug.Log("ERR 102: The ML Manager has no inputs to use");
+                    }
+                }
+
+                else //if (SavedStages.Count <= 0)
+                {
+                    // add to each list to make room for a new step 
+                    if (SavedStages.Count <= CurrentStage)
+                        SavedStages.Add(new SortedDictionary<float, KeyCode>());
+                    if (FailStages.Count <= CurrentStage)
+                        FailStages.Add(new SortedDictionary<KeyCode, float>());
+
+                    // if savedstages does not have any available inputs
+                    if (SavedStages[CurrentStage].Count <= 0)
+                    {
+                        // try the first move if none are selected
+
+                        if (FailStages[CurrentStage].Count >= Inputs.Count)
                         {
-                            if (!FailStages[CurrentStage].ContainsValue(key))
-                            { ToBeTested = key; break; }
+                            // eliminate the stage and remove the saved failstages for the current move to open more possibilities.
+                            FailStages[(CurrentStage - 1)].Add(PreviousKey, RewardCalculations() - 10); // default fail reward = -2
+                            FailStages[CurrentStage].Clear(); // should clear the current fail stages
+
+
+                            // gets the key to the Previous key to remove it from the saved stages 
+                            try
+                            {
+                                float tempKey = SavedStages[(CurrentStage - 1)].Where(x => x.Value.Equals(PreviousKey)).Select(x => x.Key).ToArray().First();
+                                SavedStages[(CurrentStage - 1)].Remove(tempKey);
+                            }
+                            catch { Debug.Log("ERR 104: issue with removing stroke in SavedStages"); }
+
+                            Restart();
+                            return;
+                        }
+
+                        // try random move  
+                        // search for key that has not been tested
+                        else if (FailStages.Count >= CurrentStage && FailStages[CurrentStage].Count > 0)
+                        {
+                            foreach (var key in Inputs)
+                            {
+                                if (!FailStages[CurrentStage].ContainsKey(key))
+                                { ToBeTested = key; break; }
+                            }
+                        }
+                        else
+                        {
+                            ToBeTested = Inputs[0];
                         }
                     }
-                    else
-                    {
-                        ToBeTested = Inputs[0];
-                    }
+                }
+
+                // apply the Key
+                if (ToBeTested != KeyCode.F15)
+                {
+                    StepInProgress = true;
+                    CurrentKey = ToBeTested;
+                    MLInput.PressKey(ToBeTested);
+                    Debug.Log(PreviousKey.ToString() + " " + ToBeTested.ToString());
+                    Debug.Log(CurrentStage);
                 }
             }
 
-            // apply the Key
-            if (ToBeTested != KeyCode.F15)
+            // TODO: stage check & calculate reward on stage
+            else if (StepInProgress)
             {
-                StepInProgress = true;
-                CurrentKey = ToBeTested;
-                MLInput.PressKey(ToBeTested);
-                Debug.Log(PreviousKey.ToString() + " " + ToBeTested.ToString());
-                Debug.Log(CurrentStage);
-            }
-        }
+                if (Vector2.Distance(StartStepPos, transform.position) > RequiredStepDistance)
+                {
+                    // set step in progress to false as step is completed
+                    StepInProgress = false;
 
-        // TODO: stage check & calculate reward on stage
-        else if (StepInProgress)
-        {
-            if (Vector2.Distance(StartStepPos, transform.position) > RequiredStepDistance)
-            {
-                // set step in progress to false as step is completed
-                StepInProgress = false;
+                    float rewardForStep = RewardCalculations();
 
-                // save step and reward
-                //if (!SavedStages.Count > CurrentStage)
+                    bool restarting = false;
 
-                float rewardForStep = RewardCalculations();
+                    if (SavedStages.Count > CurrentStage && CurrentStage > 0)
+                    {
+                        if (rewardForStep < SavedStages[CurrentStage - 1].Keys.First())
+                        {
+                            // fail the step easily by reusing code in the main desicion loop
+                            FailOnStep = true;
+                            // to go back through and register a failed step 
+                            StepInProgress = false;
 
-                if (!SavedStages[CurrentStage].ContainsKey(rewardForStep))
-                    SavedStages[CurrentStage].Add(rewardForStep, CurrentKey);
+                            // skip next statement
+                            return;
+                            //restarting = true;
+                        }
+                    }
 
-                // add 1 to the current stage as the current is complete
-                CurrentStage++;
+                    // if (!restarting)
+                    //{
+                    if (!SavedStages[CurrentStage].ContainsKey(rewardForStep))
+                        SavedStages[CurrentStage].Add(rewardForStep, CurrentKey);
 
-                // reset the step key to none and setting previous key
-                PreviousKey = CurrentKey;
-                CurrentKey = KeyCode.F15;
+                    // add 1 to the current stage as the current is complete
+                    CurrentStage++;
+
+                    // reset the step key to none and setting previous key
+                    PreviousKey = CurrentKey;
+                    CurrentKey = KeyCode.F15;
+                    //  }
+                }
+
+                // if not successed, repress the required button to continue the step
+                else
+                {
+                    MLInput.PressKey(CurrentKey);
+                }
             }
         }
     }
