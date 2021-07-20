@@ -14,6 +14,7 @@ public class MLManager : MonoBehaviour
      * ERR 102 : No inputs in ML Manager, TO FIX : add inputs to list in Inspector
        ERR 103 : Issue with failing stages, usually a duplicate has occured
        ERR 104 : Issue with removing from position in SavedStages
+       ERR 105 : Error removing a previously falsley saved stage at fail
      */
 
 
@@ -63,10 +64,14 @@ public class MLManager : MonoBehaviour
     // fail checking to return to the updaate function
     private bool FailOnStep = false;
 
+    // access to car
+    private CarMovement movementObj;
 
     // path ending
     [NonSerialized]
     public bool TargetFound = false;
+    [NonSerialized]
+    public bool SolveOnRun = true;
 
     #endregion
 
@@ -85,6 +90,8 @@ public class MLManager : MonoBehaviour
         // initialise failed stages as a dictionary
         FailStages = new List<SortedDictionary<KeyCode, float>>();
 
+        // set the car object 
+        movementObj = this.GetComponent<CarMovement>();
 
         foreach (KeyCode key in Inputs)
         {
@@ -95,22 +102,41 @@ public class MLManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!TargetFound)
+        if (!TargetFound && SolveOnRun)
         {
+            movementObj.HoldForward = true;
+
             // main look first checks for fails after an update as well as step count
             if (FailOnStep)
             {
                 try
                 {
-                    // add step to fail stages
-                    FailStages[CurrentStage].Add(CurrentKey, RewardCalculations() - 10); // default fail reward = -2
+                    // check for if Fail on stage was called while the AI had no inputs to play
+                    if (CurrentKey != KeyCode.F15)
+                    {
+                        // add step to fail stages
+                        FailStages[CurrentStage].Add(CurrentKey, RewardCalculations() - UnityEngine.Random.Range(-11, -9)); // default fail reward = -2
+                    }
+                    else if (CurrentKey == KeyCode.F15)
+                    {
+                        FailStages[CurrentStage - 1].Add(PreviousKey, RewardCalculations() - UnityEngine.Random.Range(-11, -9)); // default fail reward = -2
+                        if (SavedStages[CurrentStage - 1].Count > 0)
+                            try
+                            {
+                                float tempKey = SavedStages[(CurrentStage - 1)].Where(x => x.Value.Equals(PreviousKey)).Select(x => x.Key).ToArray().First();
+                                SavedStages[(CurrentStage - 1)].Remove(tempKey);
+                            }
+                            catch { Debug.Log("ERR 105 : -----------------------------------------------"); }
+                    }
                 }
-                catch { Debug.Log("ERR 103: Error failing stage" + "  " + CurrentStage + ", " + CurrentKey.ToString()); }
+                catch { Debug.Log("ERR 103 : " + "  " + CurrentStage + ", " + CurrentKey.ToString() + " -----------------------------------------------"); }
 
                 Restart();
                 return;
             }
-            else if (!StepInProgress)
+
+            // if there is not a step in progress
+            if (!StepInProgress)
             {
                 StartStepPos = transform.position;
 
@@ -127,7 +153,7 @@ public class MLManager : MonoBehaviour
                     }
                     catch
                     {
-                        Debug.Log("ERR 102: The ML Manager has no inputs to use");
+                        Debug.Log("ERR 102 : -----------------------------------------------");
                     }
                 }
 
@@ -150,14 +176,13 @@ public class MLManager : MonoBehaviour
                             FailStages[(CurrentStage - 1)].Add(PreviousKey, RewardCalculations() - 10); // default fail reward = -2
                             FailStages[CurrentStage].Clear(); // should clear the current fail stages
 
-
                             // gets the key to the Previous key to remove it from the saved stages 
                             try
                             {
                                 float tempKey = SavedStages[(CurrentStage - 1)].Where(x => x.Value.Equals(PreviousKey)).Select(x => x.Key).ToArray().First();
                                 SavedStages[(CurrentStage - 1)].Remove(tempKey);
                             }
-                            catch { Debug.Log("ERR 104: issue with removing stroke in SavedStages"); }
+                            catch { Debug.Log("ERR 104 : -----------------------------------------------"); }
 
                             Restart();
                             return;
@@ -186,13 +211,12 @@ public class MLManager : MonoBehaviour
                     StepInProgress = true;
                     CurrentKey = ToBeTested;
                     MLInput.PressKey(ToBeTested);
-                    Debug.Log(PreviousKey.ToString() + " " + ToBeTested.ToString());
-                    Debug.Log(CurrentStage);
+                    Debug.Log(CurrentStage + " using: " + ToBeTested.ToString());
                 }
             }
 
             // TODO: stage check & calculate reward on stage
-            else if (StepInProgress)
+            else if (StepInProgress && !FailOnStep)
             {
                 if (Vector2.Distance(StartStepPos, transform.position) > RequiredStepDistance)
                 {
@@ -200,8 +224,6 @@ public class MLManager : MonoBehaviour
                     StepInProgress = false;
 
                     float rewardForStep = RewardCalculations();
-
-                    bool restarting = false;
 
                     if (SavedStages.Count > CurrentStage && CurrentStage > 0)
                     {
@@ -212,15 +234,12 @@ public class MLManager : MonoBehaviour
                             // to go back through and register a failed step 
                             StepInProgress = false;
 
-                            // skip next statement
+                            // skip to next statement
                             return;
-                            //restarting = true;
                         }
                     }
 
-                    // if (!restarting)
-                    //{
-                    if (!SavedStages[CurrentStage].ContainsKey(rewardForStep))
+                    if (!SavedStages[CurrentStage].ContainsKey(rewardForStep) && SavedStages[CurrentStage].Count <= 0)
                         SavedStages[CurrentStage].Add(rewardForStep, CurrentKey);
 
                     // add 1 to the current stage as the current is complete
@@ -229,7 +248,7 @@ public class MLManager : MonoBehaviour
                     // reset the step key to none and setting previous key
                     PreviousKey = CurrentKey;
                     CurrentKey = KeyCode.F15;
-                    //  }
+
                 }
 
                 // if not successed, repress the required button to continue the step
@@ -238,6 +257,11 @@ public class MLManager : MonoBehaviour
                     MLInput.PressKey(CurrentKey);
                 }
             }
+        }
+        // if the AI is not solving
+        else
+        {
+            movementObj.HoldForward = false;
         }
     }
 
@@ -266,9 +290,17 @@ public class MLManager : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        FailOnStep = true;
-    } // if the AI fails on step
+        if (collision.gameObject.name != "MLTarget")
+        {
+            FailOnStep = true;
+        }
 
+        if (collision.gameObject.name == "MLTarget")
+        {
+            TargetFound = true;
+            Restart();
+        } // if the AI fails on step
+    }
 
     #region SAVING_AND_LOADING
 

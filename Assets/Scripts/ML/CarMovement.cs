@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,8 +17,8 @@ public class CarMovement : MonoBehaviour
     private float RotateSpeed = 1;
 
     // hold forward for ML
-    [SerializeField]
-    private bool HoldForward = false;
+    [NonSerialized]
+    public bool HoldForward = false;
 
     // script input manager
     private MLInput InputsFromML;
@@ -41,7 +42,9 @@ public class CarMovement : MonoBehaviour
         else
         {
             if (HoldForward)
-                transform.position += transform.up * 1 * Speed / 100;
+            {
+                transform.position += transform.right * 1 * Speed / 100;
+            }
 
             // using AI inputsS
             float axisChecker = 0;
@@ -52,9 +55,9 @@ public class CarMovement : MonoBehaviour
                 axisChecker = -1;
             else if (InputsFromML.GetKeysDown().Contains(KeyCode.D))
                 axisChecker = 1;
-            
+
             // ml input user
-            transform.Rotate(transform.forward, axisChecker * RotateSpeed);
+            transform.Rotate(transform.forward, axisChecker * (Speed/(10/3)));
 
             // reset the MLInput using the Update function from MlLib
             InputsFromML.Update();
