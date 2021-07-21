@@ -79,12 +79,12 @@ public class AIEditor : EditorWindow
                 status = "Not Solving, Press Solve and rerun to Begin";
 
             // starting the ML Agent
-            if (SolveOnRun && Solving)
+            if (SolveOnRun)
             {
                 mLManager.SolveOnRun = true;
                 Solving = true;
             }          
-            else if (!SolveOnRun && !Solving)
+            else if (!SolveOnRun)
             {
                 mLManager.SolveOnRun = false;
                 Solving = false;

@@ -71,7 +71,11 @@ public class MLManager : MonoBehaviour
     [NonSerialized]
     public bool TargetFound = false;
     [NonSerialized]
-    public bool SolveOnRun = true;
+    public bool SolveOnRun = false;
+    
+
+    // for creating an AI Bot 
+
 
     #endregion
 

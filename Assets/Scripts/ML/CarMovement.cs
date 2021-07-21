@@ -52,9 +52,9 @@ public class CarMovement : MonoBehaviour
             // inputs either A or D
             // aleternativly could use IsKeyDown() from MLLib
             if (InputsFromML.GetKeysDown().Contains(KeyCode.A))
-                axisChecker = -1;
-            else if (InputsFromML.GetKeysDown().Contains(KeyCode.D))
                 axisChecker = 1;
+            else if (InputsFromML.GetKeysDown().Contains(KeyCode.D))
+                axisChecker = -1;
 
             // ml input user
             transform.Rotate(transform.forward, axisChecker * (Speed/(10/3)));
