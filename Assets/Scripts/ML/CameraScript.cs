@@ -7,7 +7,7 @@ public class CameraScript : MonoBehaviour
     [SerializeField]
     private Transform Target;
 
-    void Update()
+    void FixedUpdate()
     {
         transform.position = Target.position;  
     } // simply alters the position of the camera to line up with the target Object

@@ -65,17 +65,18 @@ public class MLManager : MonoBehaviour
     private bool FailOnStep = false;
 
     // access to car
-    private CarMovement movementObj;
+    [NonSerialized]
+    public CarMovement movementObj;
 
     // path ending
     [NonSerialized]
     public bool TargetFound = false;
     [NonSerialized]
     public bool SolveOnRun = false;
-    
+
 
     // for creating an AI Bot 
-
+    public GameObject AIBot;
 
     #endregion
 
@@ -306,39 +307,8 @@ public class MLManager : MonoBehaviour
         } // if the AI fails on step
     }
 
-    #region SAVING_AND_LOADING
-
-    static T LoadAISavedStages<T>()
+    public List<SortedDictionary<float, KeyCode>> GetSavedStages()
     {
-        string savesFilepath = "/AISaves/SavedStages.txt";
-
-        // loading those that are saved AI routes
-        var s_fileStream = new FileStream(savesFilepath, FileMode.Open);
-        var s_reader = XmlDictionaryReader.CreateTextReader(s_fileStream, new XmlDictionaryReaderQuotas());
-        var s_serializer = new DataContractSerializer(typeof(T));
-        T s_serializableObject = (T)s_serializer.ReadObject(s_reader, true);
-        s_reader.Close();
-        s_fileStream.Close();
-        return s_serializableObject;
-    }    // load saved routes and stages
-
-
-    static void SaveAISaveStages<T>(T savingObject)
-    {
-        string savesFilepath = "/AISaves/SavedStages.txt";
-
-        var serializer = new DataContractSerializer(typeof(T));
-        var settings = new XmlWriterSettings()
-        {
-            Indent = true,
-            IndentChars = "\t",
-        };
-        var writer = XmlWriter.Create(savesFilepath, settings);
-        serializer.WriteObject(writer, savingObject);
-        writer.Close();
-
-    }   // saving those that are saved AI routes 
-
-    #endregion
-
+        return SavedStages;
+    }
 }

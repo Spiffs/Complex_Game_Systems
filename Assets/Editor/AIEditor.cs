@@ -27,8 +27,16 @@ public class AIEditor : EditorWindow
         AIE.minSize = new Vector2(215f, 110f);
     }
 
+    //private void OnEnable()
+    //{
+    //    mLManager = GameObject.Find("MLAgent").GetComponent<MLManager>();
+    //    if (mLManager == null)
+    //        Debug.Log("There is no MLAgent paired to the editor Window");
+    //}
+
     public void OnGUI()
     {
+        #region Editor Buttons
 
         GUILayout.Label("To start the Agent, Press 'Solve' in runtime");
         GUILayout.Label("");
@@ -47,7 +55,6 @@ public class AIEditor : EditorWindow
 
         // return to gui enabled
         GUI.enabled = true;
-        GUI.enabled = true;
         if (SolveOnRun == false)
             GUI.enabled = false;
 
@@ -55,6 +62,44 @@ public class AIEditor : EditorWindow
         {
             SolveOnRun = false;
         }
+
+        #endregion
+
+        #region TargetFoundButtons
+
+        GUI.enabled = false;
+        if (TargetHasBeenFound)
+            GUI.enabled = true;
+
+        GUILayout.Label("");
+        GUILayout.Label("Once the MLAgent has found");
+        GUILayout.Label("a path, it can be saved by");
+        GUILayout.Label("applying it to a new ML Bot");
+
+        if (GUILayout.Button("Create Bot"))
+        {
+            try
+            {
+                mLManager.AIBot.GetComponent<MLBotBrain>().NewMLBot(
+                    mLManager.GetSavedStages(), mLManager.movementObj.Speed, mLManager.Inputs);
+                AssetDatabase.CreateAsset(mLManager.AIBot, "Assets/MLBots/NewMlLBot.prefab");
+            }
+            catch
+            {
+                status = ("Creating Folder");
+                mLManager.AIBot.GetComponent<MLBotBrain>().NewMLBot(
+                    mLManager.GetSavedStages(), mLManager.movementObj.Speed, mLManager.Inputs);
+                AssetDatabase.CreateFolder("Assets", "MLBots");
+                AssetDatabase.CreateAsset(mLManager.AIBot, "Assets/MLBots/NewMlLBot.prefab");
+            }
+            // TODO: Create a folder if it doesn't already exist
+
+        }
+        GUI.enabled = true;
+
+        #endregion
+        
+
     }
 
     void Update()
@@ -67,6 +112,8 @@ public class AIEditor : EditorWindow
             if (!Start)
             {
                 mLManager = GameObject.Find("MLAgent").GetComponent<MLManager>();
+                if (mLManager == null)
+                    Debug.Log("There is no MLAgent paired to the editor Window");
 
                 Start = true;
             }
@@ -83,7 +130,7 @@ public class AIEditor : EditorWindow
             {
                 mLManager.SolveOnRun = true;
                 Solving = true;
-            }          
+            }
             else if (!SolveOnRun)
             {
                 mLManager.SolveOnRun = false;
@@ -112,6 +159,7 @@ public class AIEditor : EditorWindow
         else
         {
             Start = false;
+            TargetHasBeenFound = false;
 
             status = "Waiting for Editor to Play";
         }

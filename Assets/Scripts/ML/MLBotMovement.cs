@@ -1,14 +1,13 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using CML;
 
-public class CarMovement : MonoBehaviour
+public class MLBotMovement : MonoBehaviour
 {
-    // speed
-    [SerializeField]
-    [Range(0, 200)]
+    // setting the speed of the bot
+    [NonSerialized]
     public float Speed = 1;
 
     // hold forward for ML
@@ -20,7 +19,7 @@ public class CarMovement : MonoBehaviour
 
     void Start()
     {
-        InputsFromML = GetComponent<MLManager>().MLInput;
+        InputsFromML = GetComponent<MLBotBrain>().MLInput;
     }
 
     // Update is called once per frame
