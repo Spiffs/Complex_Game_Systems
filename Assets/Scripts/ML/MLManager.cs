@@ -39,7 +39,7 @@ public class MLManager : MonoBehaviour
 
     // private variables
     // starting position of the AI
-    private Vector3 StartingPosition;
+    public Vector3 StartingPosition;
     private Quaternion StartingRotation;
 
     // determining a step by distance

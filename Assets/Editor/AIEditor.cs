@@ -78,27 +78,48 @@ public class AIEditor : EditorWindow
 
         if (GUILayout.Button("Create Bot"))
         {
+            // instantiating the new Bot
+            GameObject newobj = Instantiate(mLManager.AIBot);
+            newobj.GetComponent<MLBotBrain>().NewMLBot(mLManager.GetSavedStages(), mLManager.transform, mLManager.movementObj.Speed, mLManager.Inputs);
+            
             try
             {
-                mLManager.AIBot.GetComponent<MLBotBrain>().NewMLBot(
-                    mLManager.GetSavedStages(), mLManager.movementObj.Speed, mLManager.Inputs);
-                AssetDatabase.CreateAsset(mLManager.AIBot, "Assets/MLBots/NewMlLBot.prefab");
+                // creating a new bot
+                //AssetDatabase.CopyAsset("Assets/Prefabs/MLBot.prefab", "Assets/MLBots/NewMlBot.prefab");
+                //using (var editingScope = new PrefabUtility.EditPrefabContentsScope())
+                //{
+                //    var prefabRoot = editingScope.prefabContentsRoot;
+
+                //    prefabRoot.GetComponent<MLBotBrain>().NewMLBot(mLManager.GetSavedStages(), mLManager.StartingPosition, mLManager.movementObj.Speed, mLManager.Inputs);
+                //}
+                string localPath = "Assets/NewMlBot.prefab";
+
+                localPath = AssetDatabase.GenerateUniqueAssetPath(localPath);
+
+                // Create the new Prefab.
+                PrefabUtility.SaveAsPrefabAssetAndConnect(newobj, localPath, InteractionMode.UserAction);
             }
             catch
             {
-                status = ("Creating Folder");
-                mLManager.AIBot.GetComponent<MLBotBrain>().NewMLBot(
-                    mLManager.GetSavedStages(), mLManager.movementObj.Speed, mLManager.Inputs);
-                AssetDatabase.CreateFolder("Assets", "MLBots");
-                AssetDatabase.CreateAsset(mLManager.AIBot, "Assets/MLBots/NewMlLBot.prefab");
-            }
-            // TODO: Create a folder if it doesn't already exist
+                // creating a folder as well as creating a new bot
+                //status = ("Creating Folder");
+                //AssetDatabase.CreateFolder("Assets", "MLBots");
+                //AssetDatabase.CopyAsset("Assets/Prefabs/MLBot.prefab", "Assets /MLBots/NewMlBot.prefab");
+                //using (var editingScope = new PrefabUtility.EditPrefabContentsScope())
+                //{
+                //    var prefabRoot = editingScope.prefabContentsRoot;
 
+                //    prefabRoot.GetComponent<MLBotBrain>().NewMLBot(mLManager.GetSavedStages(), mLManager.StartingPosition, mLManager.movementObj.Speed, mLManager.Inputs);
+                //}
+
+            }
+
+            Destroy(newobj);
         }
         GUI.enabled = true;
 
         #endregion
-        
+
 
     }
 

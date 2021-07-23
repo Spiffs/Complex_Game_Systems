@@ -7,8 +7,8 @@ using CML;
 public class MLBotMovement : MonoBehaviour
 {
     // setting the speed of the bot
-    [NonSerialized]
-    public float Speed = 1;
+    [SerializeField]
+    private float Speed = 1;
 
     // hold forward for ML
     [NonSerialized]
@@ -56,5 +56,10 @@ public class MLBotMovement : MonoBehaviour
             // reset the MLInput using the Update function from MlLib
             InputsFromML.Update();
         }
+    }
+
+    public void SetSpeed(float newSpeed)
+    {
+        Speed = newSpeed;
     }
 }

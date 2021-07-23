@@ -7,6 +7,7 @@ using UnityEngine;
 using CML;
 using System.Linq;
 
+[Serializable]
 public class MLBotBrain: MonoBehaviour
 {
     #region INPUTS
@@ -21,13 +22,16 @@ public class MLBotBrain: MonoBehaviour
     #region AI MANAGEMENT
 
     // public variables
-    [NonSerialized]
     public float RequiredStepDistance;
 
     // private variables
 
     // the starting position of the current step
     private Vector3 StartStepPos;
+
+    // setting the starting position of the bot to the starting
+    // position of the MLAgent to follow the track accuratly 
+    private Transform StartingPos;
 
     // run path for MLBot
     private List<SortedDictionary<float, KeyCode>> SavedStages;
@@ -53,12 +57,13 @@ public class MLBotBrain: MonoBehaviour
     #endregion
 
     // constructor-esk function
-    public bool NewMLBot(List<SortedDictionary<float, KeyCode>> newStages, float newSpeed, List<KeyCode> newInputs)
+    public bool NewMLBot(List<SortedDictionary<float, KeyCode>> newStages, Transform newStartPos, float newSpeed, List<KeyCode> newInputs)
     {
         try
         {
             SavedStages = newStages;
-            mlBotMovement.Speed = newSpeed;
+            StartingPos = newStartPos;
+            mlBotMovement.SetSpeed(newSpeed);
             Inputs = newInputs;
             return true;
         }
@@ -68,7 +73,12 @@ public class MLBotBrain: MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        SavedStages = new List<SortedDictionary<float, KeyCode>>();
+        // setting the positon to the correct starting position
+        transform.position = StartingPos.position;
+        transform.rotation = StartingPos.rotation;
+
+        // loading the saved stages
+        //SavedStages = new List<SortedDictionary<float, KeyCode>>(); _________________ HAXXOR
         Inputs = new List<KeyCode>();
 
         // set the car object 
