@@ -31,6 +31,7 @@ public class MLManager : MonoBehaviour
     #region AI MANAGEMENT
 
     // public variables
+    [NonSerialized]
     public float RequiredStepDistance = 1;
 
     // target Transform
@@ -39,8 +40,10 @@ public class MLManager : MonoBehaviour
 
     // private variables
     // starting position of the AI
+    [NonSerialized]
     public Vector3 StartingPosition;
-    private Quaternion StartingRotation;
+    [NonSerialized]
+    public Quaternion StartingRotation;
 
     // determining a step by distance
     private Vector2 StartStepPos;
@@ -140,8 +143,50 @@ public class MLManager : MonoBehaviour
                 return;
             }
 
+            if (StepInProgress && !FailOnStep)
+            {
+                if (Vector2.Distance(StartStepPos, transform.position) > RequiredStepDistance)
+                {
+                    // set step in progress to false as step is completed
+                    StepInProgress = false;
+
+                    float rewardForStep = RewardCalculations();
+
+                    if (SavedStages.Count > CurrentStage && CurrentStage > 0)
+                    {
+                        if (rewardForStep < SavedStages[CurrentStage - 1].Keys.First())
+                        {
+                            // fail the step easily by reusing code in the main desicion loop
+                            FailOnStep = true;
+                            // to go back through and register a failed step 
+                            StepInProgress = false;
+
+                            // skip to next statement
+                            return;
+                        }
+                    }
+
+                    if (!SavedStages[CurrentStage].ContainsKey(rewardForStep) && SavedStages[CurrentStage].Count <= 0)
+                        SavedStages[CurrentStage].Add(rewardForStep, CurrentKey);
+
+                    // add 1 to the current stage as the current is complete
+                    CurrentStage++;
+
+                    // reset the step key to none and setting previous key
+                    PreviousKey = CurrentKey;
+                    CurrentKey = KeyCode.F15;
+
+                }
+
+                // if not successed, repress the required button to continue the step
+                else
+                {
+                    MLInput.PressKey(CurrentKey);
+                }
+            }
+
             // if there is not a step in progress
-            if (!StepInProgress)
+            else if (!StepInProgress)
             {
                 StartStepPos = transform.position;
 
@@ -218,49 +263,7 @@ public class MLManager : MonoBehaviour
                     MLInput.PressKey(ToBeTested);
                     Debug.Log(CurrentStage + " using: " + ToBeTested.ToString());
                 }
-            }
 
-            // TODO: stage check & calculate reward on stage
-            else if (StepInProgress && !FailOnStep)
-            {
-                if (Vector2.Distance(StartStepPos, transform.position) > RequiredStepDistance)
-                {
-                    // set step in progress to false as step is completed
-                    StepInProgress = false;
-
-                    float rewardForStep = RewardCalculations();
-
-                    if (SavedStages.Count > CurrentStage && CurrentStage > 0)
-                    {
-                        if (rewardForStep < SavedStages[CurrentStage - 1].Keys.First())
-                        {
-                            // fail the step easily by reusing code in the main desicion loop
-                            FailOnStep = true;
-                            // to go back through and register a failed step 
-                            StepInProgress = false;
-
-                            // skip to next statement
-                            return;
-                        }
-                    }
-
-                    if (!SavedStages[CurrentStage].ContainsKey(rewardForStep) && SavedStages[CurrentStage].Count <= 0)
-                        SavedStages[CurrentStage].Add(rewardForStep, CurrentKey);
-
-                    // add 1 to the current stage as the current is complete
-                    CurrentStage++;
-
-                    // reset the step key to none and setting previous key
-                    PreviousKey = CurrentKey;
-                    CurrentKey = KeyCode.F15;
-
-                }
-
-                // if not successed, repress the required button to continue the step
-                else
-                {
-                    MLInput.PressKey(CurrentKey);
-                }
             }
         }
         // if the AI is not solving

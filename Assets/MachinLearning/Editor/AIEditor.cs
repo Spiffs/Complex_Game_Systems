@@ -1,8 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
-
+using System.Xml;
+using System.IO;
+using System.Runtime.Serialization;
+using CML;
 
 public class AIEditor : EditorWindow
 {
@@ -76,45 +77,32 @@ public class AIEditor : EditorWindow
         GUILayout.Label("a path, it can be saved by");
         GUILayout.Label("applying it to a new ML Bot");
 
-        if (GUILayout.Button("Create Bot"))
+        if (GUILayout.Button("Save"))
         {
             // instantiating the new Bot
-            GameObject newobj = Instantiate(mLManager.AIBot);
-            newobj.GetComponent<MLBotBrain>().NewMLBot(mLManager.GetSavedStages(), mLManager.transform, mLManager.movementObj.Speed, mLManager.Inputs);
-            
+            BotData data = new BotData();
+            data.UsableStages = mLManager.GetSavedStages();
+            data.StartPos = mLManager.StartingPosition;
+            data.StartRot = mLManager.StartingRotation;
+            data.Speed = mLManager.movementObj.Speed;
+            data.Inputs = mLManager.Inputs;
+            data.StepDisatnce = mLManager.RequiredStepDistance;
+
+            SaveAISaveStages(data);
+
             try
             {
-                // creating a new bot
-                //AssetDatabase.CopyAsset("Assets/Prefabs/MLBot.prefab", "Assets/MLBots/NewMlBot.prefab");
-                //using (var editingScope = new PrefabUtility.EditPrefabContentsScope())
-                //{
-                //    var prefabRoot = editingScope.prefabContentsRoot;
-
-                //    prefabRoot.GetComponent<MLBotBrain>().NewMLBot(mLManager.GetSavedStages(), mLManager.StartingPosition, mLManager.movementObj.Speed, mLManager.Inputs);
-                //}
                 string localPath = "Assets/NewMlBot.prefab";
 
                 localPath = AssetDatabase.GenerateUniqueAssetPath(localPath);
 
                 // Create the new Prefab.
-                PrefabUtility.SaveAsPrefabAssetAndConnect(newobj, localPath, InteractionMode.UserAction);
+                PrefabUtility.SaveAsPrefabAssetAndConnect(mLManager.AIBot, localPath, InteractionMode.UserAction);
             }
             catch
             {
-                // creating a folder as well as creating a new bot
-                //status = ("Creating Folder");
-                //AssetDatabase.CreateFolder("Assets", "MLBots");
-                //AssetDatabase.CopyAsset("Assets/Prefabs/MLBot.prefab", "Assets /MLBots/NewMlBot.prefab");
-                //using (var editingScope = new PrefabUtility.EditPrefabContentsScope())
-                //{
-                //    var prefabRoot = editingScope.prefabContentsRoot;
-
-                //    prefabRoot.GetComponent<MLBotBrain>().NewMLBot(mLManager.GetSavedStages(), mLManager.StartingPosition, mLManager.movementObj.Speed, mLManager.Inputs);
-                //}
 
             }
-
-            Destroy(newobj);
         }
         GUI.enabled = true;
 
@@ -132,9 +120,12 @@ public class AIEditor : EditorWindow
             // start functionality
             if (!Start)
             {
-                mLManager = GameObject.Find("MLAgent").GetComponent<MLManager>();
-                if (mLManager == null)
-                    Debug.Log("There is no MLAgent paired to the editor Window");
+                try
+                {
+                    mLManager = GameObject.Find("MLAgent").GetComponent<MLManager>();
+                }
+                catch { Debug.Log("There is no MLAgent paired to the editor Window"); }
+
 
                 Start = true;
             }
@@ -189,4 +180,52 @@ public class AIEditor : EditorWindow
 
         Repaint();
     }
+
+    //private void SaveToFile()
+    //{
+    //    string filename = "C:/Users/122os/OneDrive/Desktop/Complex_Game_Systems/Assets/SavedStagesXML.text";
+    //    // create an instance of the XmlSerializer class specify the type of object to serialize.
+    //    XmlSerializer serializer = new XmlSerializer(typeof(List<SortedDictionary<float, KeyCode>>));
+    //    TextWriter writer = new StreamWriter(filename);
+
+    //    // stages to save   
+    //    List<SortedDictionary<float, KeyCode>> stages = mLManager.GetSavedStages();
+
+    //    // serialize the purchase order, and close the TextWriter.
+    //    serializer.Serialize(writer, stages);
+    //    writer.Close();
+    //}
+
+    // TODO: ADD A BETTER PATH NAME TO WORK WITH BUILT GAME IF IT IS BUILT. _______________________________ HAXXOR
+
+    static T LoadAISavedStages<T>()
+    {
+        string savesFilepath = "C:/Users/122os/OneDrive/Desktop/Complex_Game_Systems/Assets/SavedStagesXML.text";
+
+        // loading those that are saved AI routes
+        var s_fileStream = new FileStream(savesFilepath, FileMode.Open);
+        var s_reader = XmlDictionaryReader.CreateTextReader(s_fileStream, new XmlDictionaryReaderQuotas());
+        var s_serializer = new DataContractSerializer(typeof(T));
+        T s_serializableObject = (T)s_serializer.ReadObject(s_reader, true);
+        s_reader.Close();
+        s_fileStream.Close();
+        return s_serializableObject;
+    }    // load saved routes and stages
+
+
+    static void SaveAISaveStages<T>(T savingObject)
+    {
+        string savesFilepath = "C:/Users/122os/OneDrive/Desktop/Complex_Game_Systems/Assets/SavedStagesXML.text";
+
+        var serializer = new DataContractSerializer(typeof(T));
+        var settings = new XmlWriterSettings()
+        {
+            Indent = true,
+            IndentChars = "\t",
+        };
+        var writer = XmlWriter.Create(savesFilepath, settings);
+        serializer.WriteObject(writer, savingObject);
+        writer.Close();
+
+    }   // saving those that are saved AI routes 
 }

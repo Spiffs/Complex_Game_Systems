@@ -4,6 +4,17 @@ using UnityEngine;
 
 namespace CML
 {
+    [System.Serializable]
+    public struct BotData
+    {
+        public List<SortedDictionary<float, KeyCode>> UsableStages;
+        public Vector3 StartPos;
+        public Quaternion StartRot;
+        public float Speed;
+        public List<KeyCode> Inputs;
+        public float StepDisatnce;
+    };
+
     public class MLInput
     {
         private Dictionary<KeyCode, bool> AvailableInputs = new Dictionary<KeyCode, bool>();

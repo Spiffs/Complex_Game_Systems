@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.IO;
@@ -6,9 +7,11 @@ using System.Xml;
 using UnityEngine;
 using CML;
 using System.Linq;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 [Serializable]
-public class MLBotBrain: MonoBehaviour
+public class MLBotBrain : MonoBehaviour
 {
     #region INPUTS
 
@@ -53,18 +56,32 @@ public class MLBotBrain: MonoBehaviour
 
     private bool TargetFound = false;
 
+    // waiting for seconds before starting logic 
+    public float SecondsBeforeStart = 1;
+    private float SecondsPassed = 0;
+
+    private bool RunStart = false;
 
     #endregion
 
+    public TextMeshPro CountdownText;
+
+    public GameObject Player;
+
+    public Canvas canvas;
+
+
     // constructor-esk function
-    public bool NewMLBot(List<SortedDictionary<float, KeyCode>> newStages, Transform newStartPos, float newSpeed, List<KeyCode> newInputs)
+    public bool NewMLBot(BotData newData)
     {
         try
         {
-            SavedStages = newStages;
-            StartingPos = newStartPos;
-            mlBotMovement.SetSpeed(newSpeed);
-            Inputs = newInputs;
+            SavedStages = newData.UsableStages;
+            StartingPos.position = newData.StartPos;
+            StartingPos.rotation = newData.StartRot;
+            mlBotMovement.SetSpeed(newData.Speed);
+            Inputs = newData.Inputs;
+            RequiredStepDistance = newData.StepDisatnce;
             return true;
         }
         catch { return false; }
@@ -73,12 +90,12 @@ public class MLBotBrain: MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        StartingPos = transform;
+
         // setting the positon to the correct starting position
         transform.position = StartingPos.position;
-        transform.rotation = StartingPos.rotation;
+        transform.rotation  = StartingPos.rotation;
 
-        // loading the saved stages
-        //SavedStages = new List<SortedDictionary<float, KeyCode>>(); _________________ HAXXOR
         Inputs = new List<KeyCode>();
 
         // set the car object 
@@ -88,12 +105,18 @@ public class MLBotBrain: MonoBehaviour
         {
             MLInput.AddInput(key);
         }
+
+        NewMLBot(LoadAISavedStages<BotData>());
+
+        canvas.gameObject.SetActive(false);
+
+        StartCoroutine("ThreeSecondCountdown");
     }
 
 
     void FixedUpdate()
     {
-        if (PlayOnRun && !TargetFound)
+        if (PlayOnRun && !TargetFound && RunStart)
         {
             mlBotMovement.HoldForward = true;
 
@@ -143,7 +166,6 @@ public class MLBotBrain: MonoBehaviour
 
                     // resetting the current key
                     CurrentKey = KeyCode.F15;
-
                 }
 
                 // if not successed, repress the required button to continue the step
@@ -165,6 +187,38 @@ public class MLBotBrain: MonoBehaviour
         if (collision.gameObject.name == "MLTarget")
         {
             TargetFound = true;
+            canvas.gameObject.SetActive(true);
+            Player.GetComponent<PlayerMovement>().CanPlay = false;
         } // if the AI fails on step
     }
+
+    static T LoadAISavedStages<T>()
+    {
+        string savesFilepath = "C:/Users/122os/OneDrive/Desktop/Complex_Game_Systems/Assets/SavedStagesXML.text";
+
+        // loading those that are saved AI routes
+        var s_fileStream = new FileStream(savesFilepath, FileMode.Open);
+        var s_reader = XmlDictionaryReader.CreateTextReader(s_fileStream, new XmlDictionaryReaderQuotas());
+        var s_serializer = new DataContractSerializer(typeof(T));
+        T s_serializableObject = (T)s_serializer.ReadObject(s_reader, true);
+        s_reader.Close();
+        s_fileStream.Close();
+        return s_serializableObject;
+    }    // load saved routes and stages
+
+    IEnumerator ThreeSecondCountdown()
+    {
+        while (SecondsPassed != SecondsBeforeStart)
+        {
+            CountdownText.text = (SecondsBeforeStart - SecondsPassed).ToString();
+            yield return new WaitForSeconds(1);
+            SecondsPassed++;
+        }
+        RunStart = true;
+        CountdownText.gameObject.SetActive(false);
+        Player.GetComponent<PlayerMovement>().CanPlay = true;
+    }
+
+    public void Restart() { SceneManager.LoadScene(SceneManager.GetActiveScene().ToString()); }
+    public void AppExit() { Application.Quit(); }
 }
