@@ -94,7 +94,7 @@ public class MLBotBrain : MonoBehaviour
 
         // setting the positon to the correct starting position
         transform.position = StartingPos.position;
-        transform.rotation  = StartingPos.rotation;
+        transform.rotation = StartingPos.rotation;
 
         Inputs = new List<KeyCode>();
 
@@ -219,6 +219,6 @@ public class MLBotBrain : MonoBehaviour
         Player.GetComponent<PlayerMovement>().CanPlay = true;
     }
 
-    public void Restart() { SceneManager.LoadScene(SceneManager.GetActiveScene().ToString()); }
+    public void Restart() { Scene scene = SceneManager.GetActiveScene(); SceneManager.LoadScene(scene.name); }
     public void AppExit() { Application.Quit(); }
 }
