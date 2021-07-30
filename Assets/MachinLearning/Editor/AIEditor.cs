@@ -200,7 +200,7 @@ public class AIEditor : EditorWindow
 
     static T LoadAISavedStages<T>()
     {
-        string savesFilepath = "C:/Users/122os/OneDrive/Desktop/Complex_Game_Systems/Assets/SavedStagesXML.text";
+        string savesFilepath = Application.dataPath + "/SavedStagesXML.text";
 
         // loading those that are saved AI routes
         var s_fileStream = new FileStream(savesFilepath, FileMode.Open);
@@ -215,7 +215,7 @@ public class AIEditor : EditorWindow
 
     static void SaveAISaveStages<T>(T savingObject)
     {
-        string savesFilepath = "C:/Users/122os/OneDrive/Desktop/Complex_Game_Systems/Assets/SavedStagesXML.text";
+        string savesFilepath = Application.dataPath + "/SavedStagesXML.text";
 
         var serializer = new DataContractSerializer(typeof(T));
         var settings = new XmlWriterSettings()

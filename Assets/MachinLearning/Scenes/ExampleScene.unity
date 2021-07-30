@@ -365,7 +365,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8067175070082935468, guid: 513ca62ed7aa4a94b8b324ac6f159703, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 513ca62ed7aa4a94b8b324ac6f159703, type: 3}
@@ -387,7 +387,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &637031920
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -711,7 +711,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 532ce8a89ec45d449983f3480efbba28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Target: {fileID: 1412558176}
+  Target: {fileID: 230535340}
 --- !u!1 &861608905
 GameObject:
   m_ObjectHideFlags: 0
@@ -993,7 +993,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1077671105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1059,7 +1059,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1213969370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1364,11 +1364,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Speed: 50
   CanPlay: 0
---- !u!224 &1412558176 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 8067175070082935467, guid: 513ca62ed7aa4a94b8b324ac6f159703, type: 3}
-  m_PrefabInstance: {fileID: 1846632397}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1562458069
 GameObject:
   m_ObjectHideFlags: 0
@@ -1652,7 +1647,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8067175070082935468, guid: 513ca62ed7aa4a94b8b324ac6f159703, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 8067175070082935466, guid: 513ca62ed7aa4a94b8b324ac6f159703, type: 3}
@@ -1820,7 +1815,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5157046383537089527, guid: b7ef4e65ebbf62c45be9fbcf5b95d8ab, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b7ef4e65ebbf62c45be9fbcf5b95d8ab, type: 3}
